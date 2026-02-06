@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Garden Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #f4f7f6; display: flex; justify-content: center; padding: 20px; }
+        .container { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 400px; }
+        input { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
+        button { width: 100%; padding: 10px; background: #2ecc71; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        button:hover { background: #27ae60; }
+        .hidden { display: none; }
+        .status { margin-top: 15px; font-size: 0.9em; color: #666; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Plant Portal</h2>
+    
+    <div id="auth-section">
+        <input type="email" id="email" placeholder="Email">
+        <input type="password" id="password" placeholder="Password">
+        <button onclick="signUp()">Sign Up</button>
+        <button onclick="signIn()" style="background:#3498db; margin-top:5px;">Sign In</button>
+    </div>
+
+    <div id="dashboard" class="hidden">
+        <h3>Welcome, <span id="user-display"></span></h3>
+        <p>Register your ESP32:</p>
+        <input type="text" id="mac-address" placeholder="MAC Address (e.g. 24:0A:C4:...)">
+        <button onclick="registerDevice()">Link Device</button>
+        
+        <hr>
+        <h4>Your Devices</h4>
+        <div id="device-list" class="status">Loading...</div>
+        <button onclick="signOut()" style="background:#e74c3c; margin-top:20px;">Log Out</button>
+    </div>
+
+    <div id="msg" class="status"></div>
+</div>
+
+<script>
+    // 1. INITIALIZE SUPABASE
+    const SB_URL = "https://ccvtugkkhweprgtupwqb.supabase.co";
+    const SB_KEY = "YOUR_ANON_KEY"; // Use the same key you put in the ESP32
+    const supabase = supabase.createClient(SB_URL, SB_KEY);
+
+    const msg = document.getElementById('msg');
+
+    // 2. SIGN UP FUNCTION
+    async function signUp() {
+        const { data, error } = await supabase.auth.signUp({
+            email: document.getElementById('email').value,
+            password: document.getElementById('password').value,
+        });
+        if (error) msg.innerText = error.message;
+        else msg.innerText = "Check your email for confirmation!";
+    }
+
+    // 3. SIGN IN FUNCTION
+    async function signIn() {
+        const { data, error } = await supabase.auth.signInWithPassword({
+            email: document.getElementById('email').value,
+            password: document.getElementById('password').value,
+        });
+        if (error) msg.innerText = error.message;
+        else showDashboard(data.user);
+    }
+
+    // 4. SHOW DASHBOARD
+    async function showDashboard(user) {
+        document.getElementById('auth-section').classList.add('hidden');
+        document.getElementById('dashboard').classList.remove('hidden');
+        document.getElementById('user-display').innerText = user.email;
+        loadDevices();
+    }
+
+    // 5. REGISTER DEVICE (LINK MAC TO USER)
+    async function registerDevice() {
+        const mac = document.getElementById('mac-address').value;
+        const { data: { user } } = await supabase.auth.getUser();
+
+        // SQL equivalent: INSERT INTO devices (device_id, owner_id) VALUES (mac, user.id)
+        const { error } = await supabase
+            .from('devices')
+            .insert([{ device_id: mac, owner_id: user.id, active_seed_id: 1 }]);
+
+        if (error) msg.innerText = "Error: " + error.message;
+        else {
+            msg.innerText = "Device Linked Successfully!";
+            loadDevices();
+        }
+    }
+
+    // 6. LOAD DEVICES (Visualizing your SQL knowledge)
+    async function loadDevices() {
+        // SQL: SELECT * FROM devices WHERE owner_id = current_user
+        const { data, error } = await supabase.from('devices').select('*');
+        
+        const list = document.getElementById('device-list');
+        if (data.length === 0) list.innerHTML = "No devices linked.";
+        else {
+            list.innerHTML = data.map(d => `<div>🆔 ${d.device_id} <br> 💧 Moisture: ${d.current_moisture}%</div>`).join('');
+        }
+    }
+
+    async function signOut() {
+        await supabase.auth.signOut();
+        location.reload();
+    }
+</script>
+
+</body>
+</html>
