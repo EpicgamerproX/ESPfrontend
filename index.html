@@ -43,74 +43,74 @@
 </div>
 
 <script>
-    // 1. INITIALIZE SUPABASE
-    const SB_URL = "https://ccvtugkkhweprgtupwqb.supabase.co";
-    const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNjdnR1Z2traHdlcHJndHVwd3FiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzOTcyMjAsImV4cCI6MjA4NTk3MzIyMH0.zZ_5Dx8txWOFfrYj0QIKu3v5Pp4Q7EMYdHGzxUalcQ4"; // Use the same key you put in the ESP32
-    const supabase = supabase.createClient(SB_URL, SB_KEY);
+   // 1. INITIALIZE SUPABASE
+const SB_URL = "https://ccvtugkkhweprgtupwqb.supabase.co";
+const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNjdnR1Z2traHdlcHJndHVwd3FiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzOTcyMjAsImV4cCI6MjA4NTk3MzIyMH0.zZ_5Dx8txWOFfrYj0QIKu3v5Pp4Q7EMYdHGzxUalcQ4";
 
-    const msg = document.getElementById('msg');
+// Use a unique variable name to avoid conflicts
+const _supabase = supabase.createClient(SB_URL, SB_KEY);
 
-    // 2. SIGN UP FUNCTION
-    async function signUp() {
-        const { data, error } = await supabase.auth.signUp({
-            email: document.getElementById('email').value,
-            password: document.getElementById('password').value,
-        });
-        if (error) msg.innerText = error.message;
-        else msg.innerText = "Check your email for confirmation!";
+console.log("Supabase Client Initialized");
+
+// 2. SIGN UP FUNCTION
+async function signUp() {
+    console.log("Sign Up Clicked");
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+
+    const { data, error } = await _supabase.auth.signUp({
+        email: email,
+        password: password,
+    });
+
+    if (error) {
+        console.error(error);
+        alert("Sign Up Error: " + error.message);
+    } else {
+        console.log("Success:", data);
+        alert("Check your email (or check Supabase Auth tab)!");
     }
+}
 
-    // 3. SIGN IN FUNCTION
-    async function signIn() {
-        const { data, error } = await supabase.auth.signInWithPassword({
-            email: document.getElementById('email').value,
-            password: document.getElementById('password').value,
-        });
-        if (error) msg.innerText = error.message;
-        else showDashboard(data.user);
+// 3. SIGN IN FUNCTION
+async function signIn() {
+    console.log("Sign In Clicked");
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+
+    const { data, error } = await _supabase.auth.signInWithPassword({
+        email: email,
+        password: password,
+    });
+
+    if (error) {
+        console.error(error);
+        alert("Login Error: " + error.message);
+    } else {
+        console.log("Logged In:", data.user);
+        showDashboard(data.user);
     }
+}
 
-    // 4. SHOW DASHBOARD
-    async function showDashboard(user) {
-        document.getElementById('auth-section').classList.add('hidden');
-        document.getElementById('dashboard').classList.remove('hidden');
-        document.getElementById('user-display').innerText = user.email;
-        loadDevices();
-    }
+// 4. SHOW DASHBOARD
+function showDashboard(user) {
+    document.getElementById('auth-section').style.display = 'none';
+    document.getElementById('dashboard').style.display = 'block';
+    document.getElementById('user-display').innerText = user.email;
+}
 
-    // 5. REGISTER DEVICE (LINK MAC TO USER)
-    async function registerDevice() {
-        const mac = document.getElementById('mac-address').value;
-        const { data: { user } } = await supabase.auth.getUser();
+// 5. REGISTER DEVICE
+async function registerDevice() {
+    const mac = document.getElementById('mac-address').value;
+    const { data: { user } } = await _supabase.auth.getUser();
 
-        // SQL equivalent: INSERT INTO devices (device_id, owner_id) VALUES (mac, user.id)
-        const { error } = await supabase
-            .from('devices')
-            .insert([{ device_id: mac, owner_id: user.id, active_seed_id: 1 }]);
+    const { error } = await _supabase
+        .from('devices')
+        .insert([{ device_id: mac, owner_id: user.id, active_seed_id: 1 }]);
 
-        if (error) msg.innerText = "Error: " + error.message;
-        else {
-            msg.innerText = "Device Linked Successfully!";
-            loadDevices();
-        }
-    }
-
-    // 6. LOAD DEVICES (Visualizing your SQL knowledge)
-    async function loadDevices() {
-        // SQL: SELECT * FROM devices WHERE owner_id = current_user
-        const { data, error } = await supabase.from('devices').select('*');
-        
-        const list = document.getElementById('device-list');
-        if (data.length === 0) list.innerHTML = "No devices linked.";
-        else {
-            list.innerHTML = data.map(d => `<div>🆔 ${d.device_id} <br> 💧 Moisture: ${d.current_moisture}%</div>`).join('');
-        }
-    }
-
-    async function signOut() {
-        await supabase.auth.signOut();
-        location.reload();
-    }
+    if (error) alert("Error: " + error.message);
+    else alert("Device Linked!");
+}
 </script>
 
 </body>
