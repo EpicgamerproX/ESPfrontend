@@ -9,7 +9,7 @@
         :root {
             --primary-green: #2ecc71;
             --dark-bg: #050505;
-            --glass-bg: rgba(10, 10, 10, 0.9);
+            --glass-bg: rgba(10, 10, 10, 0.8); /* Slightly more transparent for effect */
         }
 
         body, html {
@@ -19,73 +19,175 @@
             overflow: hidden;
         }
 
-        #bg-canvas {
-            position: fixed; top: 0; left: 0;
-            width: 100%; height: 100%; z-index: -1;
+        /* --- 1. THE 6 VERTICAL COLUMNS (BACKGROUND LAYER) --- */
+        .gallery-container {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            display: flex; /* Creates the 6 vertical strips */
+            z-index: 1; /* Lowest layer */
         }
 
-        /* Sidebar: 35% width, centered content */
+        .gallery-col {
+            flex: 1; /* Each takes equal width (1/6th) */
+            height: 100%;
+            perspective: 1000px; /* Essential for 3D flip */
+            border-right: 1px solid rgba(0,0,0,0.5);
+        }
+
+        .flip-card-inner {
+            position: relative;
+            width: 100%; height: 100%;
+            text-align: center;
+            transition: transform 0.8s;
+            transform-style: preserve-3d;
+        }
+
+        /* The Flip Trigger */
+        .gallery-col:hover .flip-card-inner {
+            transform: rotateY(180deg);
+        }
+
+        /* Front and Back Styling */
+        .flip-front, .flip-back {
+            position: absolute;
+            width: 100%; height: 100%;
+            backface-visibility: hidden; /* Hides the back when facing front */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .flip-front {
+            background-color: #111;
+            color: #333;
+        }
+
+        .flip-back {
+            background-color: var(--primary-green);
+            color: black;
+            transform: rotateY(180deg); /* Start flipped */
+            padding: 20px;
+            box-sizing: border-box;
+            flex-direction: column;
+        }
+
+        /* Image Placeholder Styling */
+        .flip-front img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* Ensures image fills the strip vertically */
+            opacity: 0.6;
+            transition: 0.5s;
+        }
+        
+        .gallery-col:hover .flip-front img { opacity: 1; }
+
+        /* --- 2. SIDEBAR (OVERLAY LAYER) --- */
         .sidebar {
+            position: absolute; /* Sits ON TOP of the columns */
+            left: 0; top: 0;
             width: 35vw; height: 100vh;
             background: var(--glass-bg);
-            backdrop-filter: blur(15px);
+            backdrop-filter: blur(15px); /* Blurs the columns behind it */
             border-right: 1px solid rgba(46, 204, 113, 0.3);
             display: flex;
             flex-direction: column;
-            justify-content: center; /* Vertical Center */
-            align-items: center;     /* Horizontal Center */
-            padding: 40px;
-            box-sizing: border-box;
+            justify-content: center;
+            align-items: center;
+            z-index: 10; /* High z-index to stay on top */
             box-shadow: 10px 0 50px rgba(0,0,0,0.8);
         }
 
-        /* Vertical Stack for Inputs */
-        .auth-container {
-            display: flex;
-            flex-direction: column;
-            width: 100%;
-            max-width: 300px; /* Keeps fields from getting too wide */
-        }
-
+        /* --- EXISTING UI STYLES --- */
+        .auth-container { display: flex; flex-direction: column; width: 100%; max-width: 300px; }
         h2 { color: var(--primary-green); margin-bottom: 30px; letter-spacing: 4px; text-align: center;}
-
-        input {
-            background: rgba(0,0,0,0.5);
-            border: 1px solid var(--primary-green);
-            padding: 15px;
-            margin-bottom: 15px; /* Vertical spacing */
-            color: var(--primary-green);
-            border-radius: 0;
-            outline: none;
-        }
-
-        .btn-main {
-            background: var(--primary-green);
-            color: #000;
-            border: none;
-            padding: 15px;
-            font-weight: bold;
-            cursor: pointer;
-            text-transform: uppercase;
-            transition: 0.3s;
-        }
-
-        .btn-main:hover {
-            box-shadow: 0 0 15px var(--primary-green);
-        }
-
-        .top-nav { position: absolute; top: 30px; right: 40px; }
-        .btn-signup {
-            background: transparent; border: 1px solid var(--primary-green);
-            color: var(--primary-green); padding: 10px 25px; cursor: pointer;
-        }
-
+        input { background: rgba(0,0,0,0.5); border: 1px solid var(--primary-green); padding: 15px; margin-bottom: 15px; color: var(--primary-green); outline: none; }
+        .btn-main { background: var(--primary-green); color: #000; border: none; padding: 15px; font-weight: bold; cursor: pointer; text-transform: uppercase; transition: 0.3s; }
+        .btn-main:hover { box-shadow: 0 0 15px var(--primary-green); }
+        .top-nav { position: absolute; top: 30px; right: 40px; z-index: 20; }
+        .btn-signup { background: transparent; border: 1px solid var(--primary-green); color: var(--primary-green); padding: 10px 25px; cursor: pointer; background: rgba(0,0,0,0.8); }
         .hidden { display: none; }
     </style>
 </head>
 <body>
 
-    <canvas id="bg-canvas"></canvas>
+    <div class="gallery-container">
+        
+        <div class="gallery-col">
+            <div class="flip-card-inner">
+                <div class="flip-front">
+                    <img src="https://i.ibb.co/MD432Gtx/pexels-alexander-hohn-2153656687-33217919.jpg" alt="Plant 1">
+                </div>
+                <div class="flip-back">
+                    <h3>SYSTEM_CORE</h3>
+                    <p>Root Access...</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="gallery-col">
+            <div class="flip-card-inner">
+                <div class="flip-front">
+                    <img src="https://i.ibb.co/wNQRqcLf/pexels-cjanimus-20261506.jpg" alt="Plant 2">
+                </div>
+                <div class="flip-back">
+                    <h3>DATA_STREAM</h3>
+                    <p>Uploading...</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="gallery-col">
+            <div class="flip-card-inner">
+                <div class="flip-front">
+                    <img src="https://i.ibb.co/g1WSXWH/pexels-zimak-18393763.jpg" alt="Plant 3">
+                </div>
+                <div class="flip-back">
+                    <h3>IOT_SENSORS</h3>
+                    <p>Status: Active</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="gallery-col">
+            <div class="flip-card-inner">
+                <div class="flip-front">
+                    <img src="https://images.unsplash.com/photo-1459156212016-c812468e2115?q=80&w=1000&auto=format&fit=crop" alt="Plant 4">
+                </div>
+                <div class="flip-back">
+                    <h3>MOISTURE</h3>
+                    <p>Analysis</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="gallery-col">
+            <div class="flip-card-inner">
+                <div class="flip-front">
+                    <img src="https://images.unsplash.com/photo-1530836369250-ef72a3f5cda8?q=80&w=1000&auto=format&fit=crop" alt="Plant 5">
+                </div>
+                <div class="flip-back">
+                    <h3>GROWTH</h3>
+                    <p>Metrics</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="gallery-col">
+            <div class="flip-card-inner">
+                <div class="flip-front">
+                    <img src="https://images.unsplash.com/photo-1523348837708-15d4a09cfac2?q=80&w=1000&auto=format&fit=crop" alt="Plant 6">
+                </div>
+                <div class="flip-back">
+                    <h3>NETWORK</h3>
+                    <p>Connected</p>
+                </div>
+            </div>
+        </div>
+
+    </div>
 
     <div class="top-nav">
         <button class="btn-signup" onclick="toggleAuthMode()">Create Account</button>
@@ -110,14 +212,13 @@
     </div>
 
     <script>
-        // 1. SUPABASE INIT
+        // --- COPY YOUR EXISTING SUPABASE SCRIPT HERE ---
+        // (Use the exact script from the previous message for handleAuth, registerDevice, etc.)
         const SB_URL = "https://ccvtugkkhweprgtupwqb.supabase.co";
         const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNjdnR1Z2traHdlcHJndHVwd3FiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzOTcyMjAsImV4cCI6MjA4NTk3MzIyMH0.zZ_5Dx8txWOFfrYj0QIKu3v5Pp4Q7EMYdHGzxUalcQ4";
         const _supabase = supabase.createClient(SB_URL, SB_KEY);
-
         let isSignUpMode = false;
 
-        // 2. AUTH LOGIC
         window.toggleAuthMode = function() {
             isSignUpMode = !isSignUpMode;
             document.querySelector('h2').innerText = isSignUpMode ? "CREATE_USER" : "SYSTEM_LOGIN";
@@ -127,11 +228,10 @@
         window.handleAuth = async function() {
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
-
             if (isSignUpMode) {
                 const { data, error } = await _supabase.auth.signUp({ email, password });
                 if (error) alert("ERR: " + error.message);
-                else alert("Account Generated. Confirm Email if required or try logging in.");
+                else alert("Account Generated. Try logging in.");
             } else {
                 const { data, error } = await _supabase.auth.signInWithPassword({ email, password });
                 if (error) alert("ACCESS_DENIED: " + error.message);
@@ -160,29 +260,6 @@
                 document.getElementById('device-list').innerHTML = data.map(d => `[ONLINE] ${d.device_id}`).join('<br>');
             }
         }
-
-        // 3. ANIMATION LOGIC
-        const canvas = document.getElementById('bg-canvas');
-        const ctx = canvas.getContext('2d');
-        let dots = [];
-        function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
-        function init() {
-            dots = [];
-            for(let i=0; i<60; i++) dots.push({x: Math.random()*canvas.width, y: Math.random()*canvas.height, vx: Math.random()-0.5, vy: Math.random()-0.5});
-        }
-        function draw() {
-            ctx.clearRect(0,0,canvas.width, canvas.height);
-            ctx.fillStyle = "#2ecc71";
-            dots.forEach(d => {
-                d.x += d.vx; d.y += d.vy;
-                if(d.x<0 || d.x>canvas.width) d.vx*=-1;
-                if(d.y<0 || d.y>canvas.height) d.vy*=-1;
-                ctx.beginPath(); ctx.arc(d.x, d.y, 1.5, 0, Math.PI*2); ctx.fill();
-            });
-            requestAnimationFrame(draw);
-        }
-        window.addEventListener('resize', resize);
-        resize(); init(); draw();
     </script>
 </body>
 </html>
