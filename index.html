@@ -3,115 +3,222 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smart Garden Dashboard</title>
+    <title>Smart Garden | Control Center</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #f4f7f6; display: flex; justify-content: center; padding: 20px; }
-        .container { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 400px; }
-        input { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
-        button { width: 100%; padding: 10px; background: #2ecc71; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
-        button:hover { background: #27ae60; }
+        :root {
+            --primary-green: #2ecc71;
+            --dark-bg: #0a0a0a;
+            --glass-bg: rgba(20, 20, 20, 0.85);
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            background-color: var(--dark-bg);
+            color: #fff;
+            font-family: 'Segoe UI', monospace;
+            overflow: hidden;
+        }
+
+        /* Interactive Background */
+        #bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: radial-gradient(circle at center, #1a2a1a 0%, #050505 100%);
+        }
+
+        /* Top Right Sign Up Button */
+        .top-nav {
+            position: absolute;
+            top: 20px;
+            right: 40px;
+            z-index: 10;
+        }
+
+        .btn-signup {
+            background: transparent;
+            border: 2px solid var(--primary-green);
+            color: var(--primary-green);
+            padding: 12px 30px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-signup:hover {
+            background: var(--primary-green);
+            color: var(--dark-bg);
+            box-shadow: 0 0 20px var(--primary-green);
+        }
+
+        /* Left Sidebar (35%) */
+        .sidebar {
+            width: 35vw;
+            height: 100vh;
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border-right: 1px solid rgba(46, 204, 113, 0.2);
+            display: flex;
+            flex-direction: column;
+            padding: 40px;
+            box-sizing: border-box;
+            box-shadow: 10px 0 30px rgba(0,0,0,0.5);
+        }
+
+        h2, h3 { color: var(--primary-green); text-transform: uppercase; letter-spacing: 2px; }
+
+        input {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(46, 204, 113, 0.3);
+            padding: 15px;
+            margin: 10px 0;
+            color: #fff;
+            border-radius: 4px;
+            outline: none;
+        }
+
+        input:focus { border-color: var(--primary-green); background: rgba(255,255,255,0.1); }
+
+        .btn-main {
+            background: var(--primary-green);
+            color: #000;
+            border: none;
+            padding: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+            border-radius: 4px;
+        }
+
+        .status-card {
+            background: rgba(0,0,0,0.3);
+            border-left: 4px solid var(--primary-green);
+            padding: 15px;
+            margin-top: 20px;
+        }
+
         .hidden { display: none; }
-        .status { margin-top: 15px; font-size: 0.9em; color: #666; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h2>Plant Portal</h2>
-    
-    <div id="auth-section">
-        <input type="email" id="email" placeholder="Email">
-        <input type="password" id="password" placeholder="Password">
-        <button onclick="signUp()">Sign Up</button>
-        <button onclick="signIn()" style="background:#3498db; margin-top:5px;">Sign In</button>
+    <canvas id="bg-canvas"></canvas>
+
+    <div class="top-nav">
+        <button class="btn-signup" onclick="toggleAuthMode()">Sign Up</button>
     </div>
 
-    <div id="dashboard" class="hidden">
-        <h3>Welcome, <span id="user-display"></span></h3>
-        <p>Register your ESP32:</p>
-        <input type="text" id="mac-address" placeholder="MAC Address (e.g. 24:0A:C4:...)">
-        <button onclick="registerDevice()">Link Device</button>
-        
-        <hr>
-        <h4>Your Devices</h4>
-        <div id="device-list" class="status">Loading...</div>
-        <button onclick="signOut()" style="background:#e74c3c; margin-top:20px;">Log Out</button>
+    <div class="sidebar">
+        <h2>System_OS v1.0</h2>
+        <div id="auth-box">
+            <h3 id="auth-title">Login</h3>
+            <input type="email" id="email" placeholder="root@system.local">
+            <input type="password" id="password" placeholder="••••••••">
+            <button class="btn-main" id="primary-btn" onclick="handleAuth()">Access System</button>
+        </div>
+
+        <div id="dashboard" class="hidden">
+            <h3>User: <span id="user-display" style="color:#fff; font-size: 0.7em;"></span></h3>
+            <div class="status-card">
+                <p>Register Hardware (MAC):</p>
+                <input type="text" id="mac-address" placeholder="24:0A:C4:XX:XX:XX">
+                <button class="btn-main" onclick="registerDevice()" style="width: 100%;">Link ESP32</button>
+            </div>
+            
+            <div id="device-list" style="margin-top: 20px;"></div>
+            <button onclick="signOut()" style="margin-top:auto; background: #e74c3c; border:none; padding:10px; color:white; cursor:pointer;">Shutdown Session</button>
+        </div>
     </div>
 
-    <div id="msg" class="status"></div>
-</div>
+    <script>
+        const SB_URL = "https://ccvtugkkhweprgtupwqb.supabase.co";
+        const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNjdnR1Z2traHdlcHJndHVwd3FiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzOTcyMjAsImV4cCI6MjA4NTk3MzIyMH0.zZ_5Dx8txWOFfrYj0QIKu3v5Pp4Q7EMYdHGzxUalcQ4"; 
+        const _supabase = supabase.createClient(SB_URL, SB_KEY);
 
-<script>
-   // 1. INITIALIZE SUPABASE
-const SB_URL = "https://ccvtugkkhweprgtupwqb.supabase.co";
-const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNjdnR1Z2traHdlcHJndHVwd3FiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzOTcyMjAsImV4cCI6MjA4NTk3MzIyMH0.zZ_5Dx8txWOFfrYj0QIKu3v5Pp4Q7EMYdHGzxUalcQ4";
+        let isSignUpMode = false;
 
-// Use a unique variable name to avoid conflicts
-const _supabase = supabase.createClient(SB_URL, SB_KEY);
+        function toggleAuthMode() {
+            isSignUpMode = !isSignUpMode;
+            document.getElementById('auth-title').innerText = isSignUpMode ? "Create Account" : "Login";
+            document.getElementById('primary-btn').innerText = isSignUpMode ? "Register User" : "Access System";
+            document.querySelector('.btn-signup').innerText = isSignUpMode ? "Back to Login" : "Sign Up";
+        }
 
-console.log("Supabase Client Initialized");
+        async function handleAuth() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
 
-// 2. SIGN UP FUNCTION
-async function signUp() {
-    console.log("Sign Up Clicked");
-    const email = document.getElementById('email').value;
-    const password = document.getElementById('password').value;
+            if (isSignUpMode) {
+                const { data, error } = await _supabase.auth.signUp({ email, password });
+                if (error) alert(error.message);
+                else alert("Account Created! You can now login.");
+            } else {
+                const { data, error } = await _supabase.auth.signInWithPassword({ email, password });
+                if (error) alert(error.message);
+                else setupUI(data.user);
+            }
+        }
 
-    const { data, error } = await _supabase.auth.signUp({
-        email: email,
-        password: password,
-    });
+        function setupUI(user) {
+            document.getElementById('auth-box').classList.add('hidden');
+            document.querySelector('.top-nav').classList.add('hidden');
+            document.getElementById('dashboard').classList.remove('hidden');
+            document.getElementById('user-display').innerText = user.email;
+            loadDevices();
+        }
 
-    if (error) {
-        console.error(error);
-        alert("Sign Up Error: " + error.message);
-    } else {
-        console.log("Success:", data);
-        alert("Check your email (or check Supabase Auth tab)!");
-    }
-}
+        // --- BACKGROUND INTERACTION ---
+        const canvas = document.getElementById('bg-canvas');
+        const ctx = canvas.getContext('2d');
+        let points = [];
 
-// 3. SIGN IN FUNCTION
-async function signIn() {
-    console.log("Sign In Clicked");
-    const email = document.getElementById('email').value;
-    const password = document.getElementById('password').value;
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
 
-    const { data, error } = await _supabase.auth.signInWithPassword({
-        email: email,
-        password: password,
-    });
+        function initPoints() {
+            points = [];
+            for(let i=0; i<80; i++) {
+                points.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    vx: (Math.random() - 0.5) * 0.5,
+                    vy: (Math.random() - 0.5) * 0.5
+                });
+            }
+        }
 
-    if (error) {
-        console.error(error);
-        alert("Login Error: " + error.message);
-    } else {
-        console.log("Logged In:", data.user);
-        showDashboard(data.user);
-    }
-}
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#2ecc71';
+            ctx.strokeStyle = 'rgba(46, 204, 113, 0.1)';
 
-// 4. SHOW DASHBOARD
-function showDashboard(user) {
-    document.getElementById('auth-section').style.display = 'none';
-    document.getElementById('dashboard').style.display = 'block';
-    document.getElementById('user-display').innerText = user.email;
-}
+            points.forEach(p => {
+                p.x += p.vx; p.y += p.vy;
+                if(p.x < 0 || p.x > canvas.width) p.vx *= -1;
+                if(p.y < 0 || p.y > canvas.height) p.vy *= -1;
+                
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, 2, 0, Math.PI*2);
+                ctx.fill();
+            });
+            requestAnimationFrame(animate);
+        }
 
-// 5. REGISTER DEVICE
-async function registerDevice() {
-    const mac = document.getElementById('mac-address').value;
-    const { data: { user } } = await _supabase.auth.getUser();
+        window.addEventListener('resize', resize);
+        resize(); initPoints(); animate();
 
-    const { error } = await _supabase
-        .from('devices')
-        .insert([{ device_id: mac, owner_id: user.id, active_seed_id: 1 }]);
-
-    if (error) alert("Error: " + error.message);
-    else alert("Device Linked!");
-}
-</script>
-
+        // (Add your registerDevice, loadDevices, and signOut functions here from previous scripts)
+    </script>
 </body>
 </html>
