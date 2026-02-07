@@ -99,90 +99,95 @@
         .hidden { display: none !important; }
         .top-nav { position: absolute; top: 30px; right: 40px; z-index: 200; }
 
-        /* --- MOBILE RESPONSIVENESS --- */
-/* --- MOBILE FULL-SCREEN OVERLAY --- */
-/* --- MOBILE FULL-SCREEN OVERLAY --- */
-/* --- MOBILE REFACTORED LAYOUT --- */
+     /* --- MOBILE REFACTORED LAYOUT --- */
 @media (max-width: 768px) {
-    /* 1. Sidebar becomes a transparent Full Screen overlay */
+    /* 1. Login State: Sidebar as Full Screen overlay */
     .sidebar {
         width: 100vw !important;
-        background: rgba(0, 0, 0, 0.7); /* Deep transparent black */
-        backdrop-filter: blur(12px);
+        background: rgba(0, 0, 0, 0.75);
+        backdrop-filter: blur(15px);
         border-right: none;
         display: flex;
         flex-direction: column;
-        justify-content: center; /* Centers Login Form */
+        justify-content: center;
+        z-index: 1000;
     }
 
-    .vertical-label { display: none !important; }
-
-    /* 2. Dashboard Top Header (Mobile Only) */
+    /* 2. Post-Login: Hide sidebar completely on phones */
     .sidebar.active-dash {
-        justify-content: flex-start; /* Move contents to top */
-        padding-top: 80px;
+        display: none !important;
     }
 
+    /* 3. Mobile Dashboard Header (Fixed to Top) */
     .dash-info-container {
-        position: absolute;
-        top: 0;
-        left: 0;
+        position: fixed;
+        top: 0; left: 0;
         width: 100% !important;
         max-width: none !important;
-        height: 70px;
-        flex-direction: row !important; /* Side-by-side layout */
+        height: 90px;
+        background: rgba(5, 5, 5, 0.95);
+        border-bottom: 1px solid var(--primary-green);
+        display: flex !important; 
+        flex-direction: row !important;
         justify-content: space-between;
         align-items: center;
-        padding: 0 20px;
-        border-bottom: 1px solid var(--primary-green);
-        background: rgba(0, 0, 0, 0.9);
+        padding: 0 15px;
         box-sizing: border-box;
+        z-index: 1100;
+        opacity: 1 !important;
+        transform: none !important;
+        pointer-events: auto !important;
     }
 
-    /* Adjust User Info for the Top Bar */
+    /* User Info (Top Left) */
     .dash-info-container div:first-child {
         text-align: left !important;
-        margin-bottom: 0 !important;
+        display: flex;
+        flex-direction: column;
+        margin: 0 !important;
     }
 
     .dash-info-container h3 { 
-        font-size: 1rem; 
+        font-size: 1.1rem; 
         margin: 0; 
         text-align: left;
+        line-height: 1.2;
     }
 
-    .dash-info-container p { display: none; } /* Hide email on mobile to save space */
+    .dash-info-container p { 
+        display: block !important; 
+        margin: 2px 0 0 0;
+        font-size: 0.7rem;
+        color: var(--primary-green);
+        opacity: 0.7;
+    }
 
-    /* 3. Disconnect Button (Top Right) */
+    /* Disconnect Button (Top Right) */
     .dash-info-container .btn-main {
         width: auto !important;
-        padding: 8px 15px;
+        padding: 10px 15px;
         font-size: 0.7em;
-        margin-bottom: 0;
+        margin: 0 !important;
+        border-color: #e74c3c;
+        color: #e74c3c;
     }
 
     /* 4. Center the Hardware Hub for Mobile */
     .central-hub {
-        width: 90vw !important;
+        width: 92vw !important;
         left: 50% !important;
-        top: 55% !important; /* Centered slightly lower to avoid header */
+        top: 55% !important; 
         transform: translate(-50%, -50%) !important;
-        background: rgba(5, 5, 5, 0.9);
-        padding: 25px;
-        box-sizing: border-box;
+        z-index: 1050;
     }
 
     /* 5. Cleanup Gallery */
     .gallery-container {
         padding-left: 0 !important;
-        filter: brightness(0.4);
+        filter: brightness(0.35) blur(4px);
     }
 
-    /* 6. Move Signup button for mobile login view */
-    .top-nav {
-        top: 20px;
-        right: 20px;
-    }
+    .vertical-label { display: none !important; }
 }
     </style>
 </head>
