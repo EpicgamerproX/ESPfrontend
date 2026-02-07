@@ -98,6 +98,54 @@
 
         .hidden { display: none !important; }
         .top-nav { position: absolute; top: 30px; right: 40px; z-index: 200; }
+
+        /* --- MOBILE RESPONSIVENESS --- */
+@media (max-width: 768px) {
+    /* 1. Make sidebar full screen when hovered/active */
+    .sidebar {
+        width: 12vw; /* Slightly wider 'handle' for thumbs */
+    }
+
+    .sidebar:hover, .sidebar.active-dash {
+        width: 100vw !important;
+        backdrop-filter: blur(30px); /* Heavier blur for mobile focus */
+    }
+
+    /* 2. Adjust content layout for small screens */
+    .auth-container, .dash-info-container {
+        width: 90%;
+        max-width: none;
+    }
+
+    /* 3. Ensure the Sign Up button is always on top and visible */
+    .top-nav {
+        top: 15px;
+        right: 15px;
+        z-index: 300; /* Higher than sidebar */
+    }
+
+    .btn-signup {
+        padding: 8px 15px;
+        font-size: 0.8em;
+    }
+
+    /* 4. Shrink the Central Hub so it fits phone screens */
+    .central-hub {
+        width: 85vw;
+        left: 50%; /* Center it properly since sidebar is 100% */
+        padding: 25px 15px;
+    }
+
+    /* 5. Hide the vertical label sooner on touch to prevent overlap */
+    .sidebar:active .vertical-label {
+        opacity: 0;
+    }
+
+    /* 6. Adjust the gallery padding so images aren't cut off weirdly */
+    .gallery-container {
+        padding-left: 12vw;
+    }
+}
     </style>
 </head>
 <body>
