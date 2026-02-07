@@ -106,6 +106,29 @@
 
 /* --- MOBILE REFACTORED LAYOUT --- */
 @media (max-width: 768px) {
+    /* 1. Force the auth container to be visible immediately on mobile */
+    .auth-container {
+        opacity: 1 !important;
+        transform: translateX(0) !important;
+        pointer-events: auto !important;
+        position: relative; /* Centers it better within the flex sidebar */
+        display: flex !important;
+    }
+
+    /* 2. Ensure the sidebar (which contains the form) is visible */
+    .sidebar {
+        width: 100vw !important;
+        background: rgba(0, 0, 0, 0.85); /* Slightly darker for better readability */
+        display: flex !important;
+        justify-content: center;
+        align-items: center;
+    }
+
+    /* 3. Hide the vertical 'LOG IN' label on mobile to avoid clutter */
+    .vertical-label {
+        display: none !important;
+    }
+}
     /* Login Sidebar */
     .sidebar {
         width: 100vw !important;
@@ -243,30 +266,29 @@
         };
 
 function showUI(user) {
-    // 1. Hide the login sidebar and sign-up button
-    document.getElementById('auth-box').classList.add('hidden');
-    document.getElementById('signup-nav').classList.add('hidden');
+    // Hide the login elements
+    document.getElementById('auth-box').style.display = 'none';
+    document.getElementById('signup-nav').style.display = 'none';
     
-    // 2. Populate User Data
-    const dashSide = document.getElementById('dash-side-content');
+    // Set user info
     document.getElementById('user-display-name').innerText = user.email.split('@')[0].toUpperCase();
     document.getElementById('user-display-email').innerText = user.email;
 
-    // 3. Handle Sidebar transition
     const sidebar = document.getElementById('main-sidebar');
-    sidebar.classList.add('active-dash'); 
+    const dashSide = document.getElementById('dash-side-content');
 
-    // 4. Handle Mobile Top Bar
     if (window.innerWidth <= 768) {
-        // Move header to body so it stays visible while sidebar is display:none
+        // Force the sidebar to disappear on mobile
+        sidebar.style.display = 'none';
+        // Move the dashboard header to the top of the screen
         document.body.appendChild(dashSide);
         dashSide.classList.add('active-mobile-bar');
     } else {
+        sidebar.classList.add('active-dash');
         dashSide.classList.remove('hidden');
-        dashSide.style.display = 'block';
     }
 
-    // 5. Blur background and show the Central Hub
+    // Activate the main hub
     document.getElementById('gallery').classList.add('blurred');
     document.getElementById('hardware-hub').classList.add('active');
     
