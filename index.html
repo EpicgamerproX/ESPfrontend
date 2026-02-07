@@ -9,7 +9,7 @@
         :root {
             --primary-green: #2ecc71;
             --dark-bg: #050505;
-            --glass-bg: rgba(10, 10, 10, 0.8); /* Slightly more transparent for effect */
+            --glass-bg: rgba(10, 10, 10, 0.9);
         }
 
         body, html {
@@ -19,201 +19,189 @@
             overflow: hidden;
         }
 
-        /* --- 1. THE 6 VERTICAL COLUMNS (BACKGROUND LAYER) --- */
+        /* --- 1. THE 6 VERTICAL COLUMNS (BACKGROUND) --- */
         .gallery-container {
-            position: fixed;
-            top: 0; left: 0;
+            position: fixed; top: 0; left: 0;
             width: 100%; height: 100%;
-            display: flex; /* Creates the 6 vertical strips */
-            z-index: 1; /* Lowest layer */
+            display: flex; z-index: 1;
+            padding-left: 8vw; /* Offset so the first image isn't hidden by the bar */
+            box-sizing: border-box;
+            transition: padding-left 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        /* Optional: Push background when sidebar opens */
+        .sidebar:hover ~ .gallery-container {
+            /* padding-left: 35vw;  <-- Uncomment this if you want images to squish */
         }
 
         .gallery-col {
-            flex: 1; /* Each takes equal width (1/6th) */
-            height: 100%;
-            perspective: 1000px; /* Essential for 3D flip */
+            flex: 1; height: 100%;
+            perspective: 1000px;
             border-right: 1px solid rgba(0,0,0,0.5);
         }
 
         .flip-card-inner {
-            position: relative;
-            width: 100%; height: 100%;
-            text-align: center;
-            transition: transform 0.8s;
+            position: relative; width: 100%; height: 100%;
+            text-align: center; transition: transform 0.8s;
             transform-style: preserve-3d;
         }
 
-        /* The Flip Trigger */
-        .gallery-col:hover .flip-card-inner {
-            transform: rotateY(180deg);
-        }
+        .gallery-col:hover .flip-card-inner { transform: rotateY(180deg); }
 
-        /* Front and Back Styling */
         .flip-front, .flip-back {
-            position: absolute;
-            width: 100%; height: 100%;
-            backface-visibility: hidden; /* Hides the back when facing front */
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            position: absolute; width: 100%; height: 100%;
+            backface-visibility: hidden;
+            display: flex; align-items: center; justify-content: center;
             overflow: hidden;
         }
 
-        .flip-front {
-            background-color: #111;
-            color: #333;
-        }
-
+        .flip-front { background-color: #111; }
         .flip-back {
-            background-color: var(--primary-green);
-            color: black;
-            transform: rotateY(180deg); /* Start flipped */
-            padding: 20px;
-            box-sizing: border-box;
+            background-color: var(--primary-green); color: black;
+            transform: rotateY(180deg); padding: 20px;
             flex-direction: column;
         }
 
-        /* Image Placeholder Styling */
-        .flip-front img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover; /* Ensures image fills the strip vertically */
-            opacity: 0.6;
-            transition: 0.5s;
-        }
-        
+        .flip-front img { width: 100%; height: 100%; object-fit: cover; opacity: 0.6; transition: 0.5s; }
         .gallery-col:hover .flip-front img { opacity: 1; }
 
-        /* --- 2. SIDEBAR (OVERLAY LAYER) --- */
+        /* --- 2. EXPANDABLE SIDEBAR --- */
         .sidebar {
-            position: absolute; /* Sits ON TOP of the columns */
-            left: 0; top: 0;
-            width: 35vw; height: 100vh;
+            position: absolute; left: 0; top: 0;
+            height: 100vh;
+            width: 8vw; /* START THIN (8%) */
             background: var(--glass-bg);
-            backdrop-filter: blur(15px); /* Blurs the columns behind it */
-            border-right: 1px solid rgba(46, 204, 113, 0.3);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 10; /* High z-index to stay on top */
-            box-shadow: 10px 0 50px rgba(0,0,0,0.8);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid rgba(46, 204, 113, 0.5);
+            display: flex; flex-direction: column;
+            justify-content: center; align-items: center;
+            z-index: 100;
+            overflow: hidden; /* Hide the form when thin */
+            transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1); /* Sci-Fi Ease */
+            box-shadow: 5px 0 30px rgba(0,0,0,0.8);
         }
 
-        /* --- EXISTING UI STYLES --- */
-        .auth-container { display: flex; flex-direction: column; width: 100%; max-width: 300px; }
-        h2 { color: var(--primary-green); margin-bottom: 30px; letter-spacing: 4px; text-align: center;}
-        input { background: rgba(0,0,0,0.5); border: 1px solid var(--primary-green); padding: 15px; margin-bottom: 15px; color: var(--primary-green); outline: none; }
-        .btn-main { background: var(--primary-green); color: #000; border: none; padding: 15px; font-weight: bold; cursor: pointer; text-transform: uppercase; transition: 0.3s; }
+        /* HOVER STATE: EXPAND TO 35% */
+        .sidebar:hover {
+            width: 35vw;
+        }
+
+        /* --- CONTENT VISIBILITY --- */
+        .auth-container {
+            display: flex; flex-direction: column; width: 80%; max-width: 300px;
+            opacity: 0; /* Hidden by default */
+            transform: translateX(-20px);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            pointer-events: none; /* Prevent clicking when hidden */
+            position: absolute; /* Keep it centered regardless of width */
+        }
+
+        /* Show form only when sidebar is hovered */
+        .sidebar:hover .auth-container {
+            opacity: 1;
+            transform: translateX(0);
+            pointer-events: auto;
+            transition-delay: 0.2s; /* Wait for sidebar to open first */
+        }
+
+        /* --- VERTICAL LABEL (VISIBLE WHEN CLOSED) --- */
+        .vertical-label {
+            writing-mode: vertical-rl;
+            text-orientation: mixed;
+            color: var(--primary-green);
+            font-size: 24px;
+            letter-spacing: 5px;
+            text-transform: uppercase;
+            font-weight: bold;
+            opacity: 1;
+            transition: opacity 0.3s;
+            white-space: nowrap;
+        }
+
+        /* Hide vertical text when opened */
+        .sidebar:hover .vertical-label {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        /* --- UI ELEMENTS --- */
+        h2 { color: var(--primary-green); margin-bottom: 30px; letter-spacing: 4px; text-align: center; white-space: nowrap;}
+        input { background: rgba(0,0,0,0.5); border: 1px solid var(--primary-green); padding: 15px; margin-bottom: 15px; color: var(--primary-green); outline: none; width: 100%; box-sizing: border-box;}
+        .btn-main { background: var(--primary-green); color: #000; border: none; padding: 15px; font-weight: bold; cursor: pointer; text-transform: uppercase; transition: 0.3s; width: 100%; }
         .btn-main:hover { box-shadow: 0 0 15px var(--primary-green); }
-        .top-nav { position: absolute; top: 30px; right: 40px; z-index: 20; }
-        .btn-signup { background: transparent; border: 1px solid var(--primary-green); color: var(--primary-green); padding: 10px 25px; cursor: pointer; background: rgba(0,0,0,0.8); }
+        
+        .top-nav { position: absolute; top: 30px; right: 40px; z-index: 200; }
+        .btn-signup { background: rgba(0,0,0,0.8); border: 1px solid var(--primary-green); color: var(--primary-green); padding: 10px 25px; cursor: pointer; }
+        
         .hidden { display: none; }
     </style>
 </head>
 <body>
 
+    <div class="sidebar">
+        <div class="vertical-label">SYSTEM ACCESS // LOGIN</div>
+
+        <div class="auth-container" id="auth-box">
+            <h2>SYSTEM_LOGIN</h2>
+            <input type="email" id="email" placeholder="USER_ID@SECURE">
+            <input type="password" id="password" placeholder="ACCESS_KEY">
+            <button class="btn-main" onclick="handleAuth()">Authorize</button>
+        </div>
+
+        <div class="auth-container hidden" id="dashboard">
+            <h3 style="color: var(--primary-green); text-align: center;">LOGGED_IN: <span id="user-display" style="color: white;"></span></h3>
+            <input type="text" id="mac-address" placeholder="DEVICE_MAC_ADDR">
+            <button class="btn-main" onclick="registerDevice()">Link Hardware</button>
+            <div id="device-list" style="margin-top: 20px; font-size: 0.8em; color: #888;"></div>
+            <button onclick="location.reload()" style="background:none; border:1px solid red; color:red; margin-top:20px; cursor:pointer; width:100%;">Disconnect</button>
+        </div>
+    </div>
+
     <div class="gallery-container">
-        
         <div class="gallery-col">
             <div class="flip-card-inner">
-                <div class="flip-front">
-                    <img src="https://i.ibb.co/MD432Gtx/pexels-alexander-hohn-2153656687-33217919.jpg" alt="Plant 1">
-                </div>
-                <div class="flip-back">
-                    <h3>SYSTEM_CORE</h3>
-                    <p>Root Access...</p>
-                </div>
+                <div class="flip-front"><img src="https://i.ibb.co/g1WSXWH/pexels-zimak-18393763.jpg"></div>
+                <div class="flip-back"><h3>CORE</h3><p>Root Access</p></div>
             </div>
         </div>
-
         <div class="gallery-col">
             <div class="flip-card-inner">
-                <div class="flip-front">
-                    <img src="https://i.ibb.co/wNQRqcLf/pexels-cjanimus-20261506.jpg" alt="Plant 2">
-                </div>
-                <div class="flip-back">
-                    <h3>DATA_STREAM</h3>
-                    <p>Uploading...</p>
-                </div>
+                <div class="flip-front"><img src="https://i.ibb.co/wNQRqcLf/pexels-cjanimus-20261506.jpg"></div>
+                <div class="flip-back"><h3>DATA</h3><p>Uploading...</p></div>
             </div>
         </div>
-
         <div class="gallery-col">
             <div class="flip-card-inner">
-                <div class="flip-front">
-                    <img src="https://i.ibb.co/g1WSXWH/pexels-zimak-18393763.jpg" alt="Plant 3">
-                </div>
-                <div class="flip-back">
-                    <h3>IOT_SENSORS</h3>
-                    <p>Status: Active</p>
-                </div>
+                <div class="flip-front"><img src="https://i.ibb.co/Lzhj4fyG/pexels-doma-18248912.jpg"></div>
+                <div class="flip-back"><h3>SENSORS</h3><p>Active</p></div>
             </div>
         </div>
-
         <div class="gallery-col">
             <div class="flip-card-inner">
-                <div class="flip-front">
-                    <img src="https://images.unsplash.com/photo-1459156212016-c812468e2115?q=80&w=1000&auto=format&fit=crop" alt="Plant 4">
-                </div>
-                <div class="flip-back">
-                    <h3>MOISTURE</h3>
-                    <p>Analysis</p>
-                </div>
+                <div class="flip-front"><img src="https://i.ibb.co/5gWj605y/pexels-elias-tigiser-411757-5652089.jpg"></div>
+                <div class="flip-back"><h3>MOISTURE</h3><p>Analysis</p></div>
             </div>
         </div>
-
         <div class="gallery-col">
             <div class="flip-card-inner">
-                <div class="flip-front">
-                    <img src="https://images.unsplash.com/photo-1530836369250-ef72a3f5cda8?q=80&w=1000&auto=format&fit=crop" alt="Plant 5">
-                </div>
-                <div class="flip-back">
-                    <h3>GROWTH</h3>
-                    <p>Metrics</p>
-                </div>
+                <div class="flip-front"><img src="https://i.ibb.co/k2yVDmbh/pexels-mikhail-nilov-6965514.jpg"></div>
+                <div class="flip-back"><h3>GROWTH</h3><p>Metrics</p></div>
             </div>
         </div>
-
         <div class="gallery-col">
             <div class="flip-card-inner">
-                <div class="flip-front">
-                    <img src="https://images.unsplash.com/photo-1523348837708-15d4a09cfac2?q=80&w=1000&auto=format&fit=crop" alt="Plant 6">
-                </div>
-                <div class="flip-back">
-                    <h3>NETWORK</h3>
-                    <p>Connected</p>
-                </div>
+                <div class="flip-front"><img src="https://i.ibb.co/MD432Gtx/pexels-alexander-hohn-2153656687-33217919.jpg"></div>
+                <div class="flip-back"><h3>NET</h3><p>Connected</p></div>
             </div>
         </div>
-
     </div>
 
     <div class="top-nav">
         <button class="btn-signup" onclick="toggleAuthMode()">Create Account</button>
     </div>
 
-    <div class="sidebar">
-        <h2>SYSTEM_LOGIN</h2>
-        
-        <div id="auth-box" class="auth-container">
-            <input type="email" id="email" placeholder="USER_ID@SECURE">
-            <input type="password" id="password" placeholder="ACCESS_KEY">
-            <button class="btn-main" onclick="handleAuth()">Authorize</button>
-        </div>
-
-        <div id="dashboard" class="auth-container hidden">
-            <h3 style="color: var(--primary-green); text-align: center;">LOGGED_IN: <span id="user-display" style="color: white;"></span></h3>
-            <input type="text" id="mac-address" placeholder="DEVICE_MAC_ADDR">
-            <button class="btn-main" onclick="registerDevice()">Link Hardware</button>
-            <div id="device-list" style="margin-top: 20px; font-size: 0.8em; color: #888;"></div>
-            <button onclick="location.reload()" style="background:none; border:1px solid red; color:red; margin-top:20px; cursor:pointer;">Logout</button>
-        </div>
-    </div>
-
     <script>
-        // --- COPY YOUR EXISTING SUPABASE SCRIPT HERE ---
-        // (Use the exact script from the previous message for handleAuth, registerDevice, etc.)
+        // --- JS LOGIC ---
         const SB_URL = "https://ccvtugkkhweprgtupwqb.supabase.co";
         const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNjdnR1Z2traHdlcHJndHVwd3FiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzOTcyMjAsImV4cCI6MjA4NTk3MzIyMH0.zZ_5Dx8txWOFfrYj0QIKu3v5Pp4Q7EMYdHGzxUalcQ4";
         const _supabase = supabase.createClient(SB_URL, SB_KEY);
@@ -231,7 +219,7 @@
             if (isSignUpMode) {
                 const { data, error } = await _supabase.auth.signUp({ email, password });
                 if (error) alert("ERR: " + error.message);
-                else alert("Account Generated. Try logging in.");
+                else alert("User Created. Please Log In.");
             } else {
                 const { data, error } = await _supabase.auth.signInWithPassword({ email, password });
                 if (error) alert("ACCESS_DENIED: " + error.message);
@@ -256,8 +244,8 @@
 
         async function loadDevices() {
             const { data, error } = await _supabase.from('devices').select('*');
-            if (!error) {
-                document.getElementById('device-list').innerHTML = data.map(d => `[ONLINE] ${d.device_id}`).join('<br>');
+            if (!error && data) {
+                document.getElementById('device-list').innerHTML = data.map(d => `[ONLINE] ${d.device_id} <span style="color:var(--primary-green)">${d.current_moisture || 0}%</span>`).join('<br>');
             }
         }
     </script>
