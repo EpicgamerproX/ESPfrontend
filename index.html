@@ -8,8 +8,9 @@
     <style>
         :root {
             --primary-green: #2ecc71;
+            --glow-green: rgba(46, 204, 113, 0.4);
             --dark-bg: #050505;
-            --glass-bg: rgba(10, 10, 10, 0.9);
+            --glass-bg: rgba(5, 5, 5, 0.95);
         }
 
         body, html {
@@ -19,190 +20,133 @@
             overflow: hidden;
         }
 
-        /* --- 1. THE 6 VERTICAL COLUMNS (BACKGROUND) --- */
+        /* --- BACKGROUND LAYER --- */
         .gallery-container {
             position: fixed; top: 0; left: 0;
             width: 100%; height: 100%;
             display: flex; z-index: 1;
-            padding-left: 8vw; /* Offset so the first image isn't hidden by the bar */
+            padding-left: 8vw;
             box-sizing: border-box;
-            transition: padding-left 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+            transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
-        /* Optional: Push background when sidebar opens */
-        .sidebar:hover ~ .gallery-container {
-            /* padding-left: 35vw;  <-- Uncomment this if you want images to squish */
-        }
+        .blurred { filter: blur(10px) brightness(0.3); transform: scale(1.05); }
 
-        .gallery-col {
-            flex: 1; height: 100%;
-            perspective: 1000px;
-            border-right: 1px solid rgba(0,0,0,0.5);
-        }
-
-        .flip-card-inner {
-            position: relative; width: 100%; height: 100%;
-            text-align: center; transition: transform 0.4s;
-            transform-style: preserve-3d;
-        }
-
+        .gallery-col { flex: 1; height: 100%; perspective: 1000px; border-right: 1px solid rgba(46, 204, 113, 0.1); }
+        .flip-card-inner { position: relative; width: 100%; height: 100%; text-align: center; transition: transform 0.4s; transform-style: preserve-3d; }
         .gallery-col:hover .flip-card-inner { transform: rotateY(180deg); }
+        .flip-front, .flip-back { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        .flip-front { background-color: #000; }
+        .flip-back { background-color: rgba(0, 20, 0, 0.9); color: var(--primary-green); transform: rotateY(180deg); padding: 20px; flex-direction: column; border: 1px solid var(--primary-green); }
+        .flip-front img { width: 100%; height: 100%; object-fit: cover; opacity: 0.4; transition: 0.5s; }
+        .gallery-col:hover .flip-front img { opacity: 0.8; }
 
-        .flip-front, .flip-back {
-            position: absolute; width: 100%; height: 100%;
-            backface-visibility: hidden;
-            display: flex; align-items: center; justify-content: center;
-            overflow: hidden;
-        }
-
-        .flip-front { background-color: #111; }
-        .flip-back {
-            background-color: rgba(2,2,2,0.8); color: var(--primary-green);
-            transform: rotateY(180deg); padding: 20px;
-            flex-direction: column;
-        }
-
-        .flip-front img { width: 100%; height: 100%; object-fit: cover; opacity: 0.6; transition: 0.5s; transition-delay: 0.2s}
-        .gallery-col:hover .flip-front img { opacity: 1; }
-
-        /* --- 2. EXPANDABLE SIDEBAR --- */
+        /* --- SIDEBAR --- */
         .sidebar {
-            position: absolute; left: 0; top: 0;
-            height: 100vh;
-            width: 8vw; /* START THIN (8%) */
-            background: var(--glass-bg);
-            backdrop-filter: blur(20px);
-            border-right: 1px solid rgba(46, 204, 113, 0.5);
-            display: flex; flex-direction: column;
-            justify-content: center; align-items: center;
-            z-index: 100;
-            overflow: hidden; /* Hide the form when thin */
-            transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1); /* Sci-Fi Ease */
-            box-shadow: 5px 0 30px rgba(0,0,0,0.8);
+            position: absolute; left: 0; top: 0; height: 100vh; width: 8vw;
+            background: var(--glass-bg); backdrop-filter: blur(20px);
+            border-right: 1px solid var(--primary-green);
+            display: flex; flex-direction: column; justify-content: space-between; align-items: center;
+            z-index: 100; transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+            padding: 40px 0; box-sizing: border-box;
         }
 
-        /* HOVER STATE: EXPAND TO 35% */
-        .sidebar:hover {
-            width: 35vw;
-        }
+        .sidebar:hover { width: 35vw; }
 
-        /* --- CONTENT VISIBILITY --- */
-        .auth-container {
+        /* Dashboard State for Sidebar */
+        .sidebar.active-dash { width: 20vw !important; border-right: 1px solid var(--primary-green); background: #000; }
+
+        .vertical-label { writing-mode: vertical-rl; text-orientation: mixed; color: var(--primary-green); font-size: 24px; letter-spacing: 5px; text-transform: uppercase; font-weight: bold; transition: opacity 0.3s; }
+        .sidebar:hover .vertical-label, .sidebar.active-dash .vertical-label { opacity: 0; display: none; }
+
+        /* --- CONTAINERS --- */
+        .auth-container, .dash-info-container {
             display: flex; flex-direction: column; width: 80%; max-width: 300px;
-            opacity: 0; /* Hidden by default */
-            transform: translateX(-20px);
-            transition: opacity 0.3s ease, transform 0.5s ease;
-            pointer-events: none; /* Prevent clicking when hidden */
-            position: absolute; /* Keep it centered regardless of width */
+            opacity: 0; transform: translateX(-20px); transition: 0.3s; pointer-events: none;
         }
 
-        /* Show form only when sidebar is hovered */
-        .sidebar:hover .auth-container {
-            opacity: 1;
-            transform: translateX(0);
-            pointer-events: auto;
-            transition-delay: 0.2s; /* Wait for sidebar to open first */
+        .sidebar:hover .auth-container, .sidebar.active-dash .dash-info-container {
+            opacity: 1; transform: translateX(0); pointer-events: auto; transition-delay: 0.2s;
         }
 
-        /* --- VERTICAL LABEL (VISIBLE WHEN CLOSED) --- */
-        .vertical-label {
-            writing-mode: vertical-rl;
-            text-orientation: mixed;
-            color: var(--primary-green);
-            font-size: 24px;
-            letter-spacing: 5px;
-            text-transform: uppercase;
-            font-weight: bold;
-            opacity: 1;
-            transition: opacity 0.3s;
-            white-space: nowrap;
+        /* --- CENTRAL DASHBOARD BOX --- */
+        .central-hub {
+            position: fixed; top: 50%; left: 55%; transform: translate(-50%, -50%) scale(0.9);
+            width: 450px; background: rgba(0,0,0,0.9); border: 1px solid var(--primary-green);
+            padding: 40px; z-index: 150; opacity: 0; pointer-events: none;
+            transition: all 0.5s ease; box-shadow: 0 0 40px var(--glow-green);
         }
 
-        /* Hide vertical text when opened */
-        .sidebar:hover .vertical-label {
-            opacity: 0;
-            pointer-events: none;
-        }
+        .central-hub.active { opacity: 1; transform: translate(-50%, -50%) scale(1); pointer-events: auto; }
 
-        /* --- UI ELEMENTS --- */
-        h2 { color: var(--primary-green); margin-bottom: 30px; letter-spacing: 4px; text-align: center; white-space: nowrap;}
-        input { background: rgba(0,0,0,0.5); border: 1px solid var(--primary-green); padding: 15px; margin-bottom: 15px; color: var(--primary-green); outline: none; width: 100%; box-sizing: border-box;}
-        .btn-main { background: var(--primary-green); color: #000; border: none; padding: 15px; font-weight: bold; cursor: pointer; text-transform: uppercase; transition: transform 0.3s ease; width: 100%; }
-        .btn-main:hover { box-shadow: 0 0 15px var(--primary-green); }
+        /* --- BUTTONS & INPUTS --- */
+        h2, h3 { color: var(--primary-green); letter-spacing: 4px; text-align: center; text-transform: uppercase; }
+        input { background: #000; border: 1px solid #333; padding: 15px; margin-bottom: 15px; color: var(--primary-green); outline: none; width: 100%; box-sizing: border-box; transition: 0.3s; }
+        input:focus { border-color: var(--primary-green); box-shadow: 0 0 10px var(--glow-green); }
         
+        .btn-main { 
+            background: transparent; border: 1px solid var(--primary-green); color: var(--primary-green); 
+            padding: 15px; font-weight: bold; cursor: pointer; text-transform: uppercase; 
+            transition: all 0.3s ease; width: 100%; 
+        }
+        .btn-main:hover { background: var(--primary-green); color: #000; box-shadow: 0 0 20px var(--primary-green); }
+
+        .btn-signup { background: #000; border-radius: 4px; border: 1px solid var(--primary-green); color: var(--primary-green); padding: 10px 25px; cursor: pointer; transition: 0.3s; }
+        .btn-signup:hover { background: var(--primary-green); color: #000; }
+
+        .device-list-item { background: rgba(46, 204, 113, 0.05); padding: 10px; margin-top: 10px; border-left: 3px solid var(--primary-green); font-size: 0.8em; }
+
+        .hidden { display: none !important; }
         .top-nav { position: absolute; top: 30px; right: 40px; z-index: 200; }
-        .btn-signup { background: rgba(0,0,0,0.8); border-radius: 12px; border: 1px solid var(--primary-green); color: var(--primary-green); padding: 10px 25px; cursor: pointer; }
-        .btn-signup:hover { background: var(--primary-green); border: 2px solid rgba(0,0,0,0.8); color: rgba(0,0,0,0.8); border-radius: 12px; transition: 0.3s;}
-        
-        .hidden { display: none; }
     </style>
 </head>
 <body>
 
-    <div class="sidebar">
-        <div class="vertical-label">LOG IN</div>
+    <div class="sidebar" id="main-sidebar">
+        <div class="vertical-label" id="side-label">SYSTEM ACCESS</div>
 
         <div class="auth-container" id="auth-box">
-            <h2>SYSTEM LOG-IN</h2>
-            <input type="email" id="email" placeholder="USER_ID@SECURE">
+            <h2>LOGIN</h2>
+            <input type="email" id="email" placeholder="USER_ID">
             <input type="password" id="password" placeholder="ACCESS_KEY">
-            <button class="btn-main" onclick="handleAuth()">Log In</button>
+            <button class="btn-main" onclick="handleAuth()">Authorize</button>
         </div>
 
-        <div class="auth-container hidden" id="dashboard">
-            <h3 style="color: var(--primary-green); text-align: center;">LOGGED_IN: <span id="user-display" style="color: white;"></span></h3>
-            <input type="text" id="mac-address" placeholder="DEVICE_MAC_ADDR">
-            <button class="btn-main" onclick="registerDevice()">Link Hardware</button>
-            <div id="device-list" style="margin-top: 20px; font-size: 0.8em; color: #888;"></div>
-            <button onclick="location.reload()" style="background:none; border:1px solid red; color:red; margin-top:20px; cursor:pointer; width:100%;">Disconnect</button>
+        <div class="dash-info-container hidden" id="dash-side-content">
+            <div style="text-align: center; margin-bottom: 40px;">
+                <h3 id="user-display-name">USER</h3>
+                <p id="user-display-email" style="color: #666; font-size: 0.7em;"></p>
+            </div>
+            <button class="btn-main" style="border-color: #e74c3c; color: #e74c3c;" onclick="location.reload()">Disconnect</button>
         </div>
     </div>
 
-    <div class="gallery-container">
-        <div class="gallery-col">
-            <div class="flip-card-inner">
-                <div class="flip-front"><img src="https://i.ibb.co/g1WSXWH/pexels-zimak-18393763.jpg"></div>
-                <div class="flip-back"><h3>Future</h3><p>-Root Access-</p></div>
-            </div>
-        </div>
-        <div class="gallery-col">
-            <div class="flip-card-inner">
-                <div class="flip-front"><img src="https://i.ibb.co/wNQRqcLf/pexels-cjanimus-20261506.jpg"></div>
-                <div class="flip-back"><h3>Of</h3><p>-Watering-</p></div>
-            </div>
-        </div>
-        <div class="gallery-col">
-            <div class="flip-card-inner">
-                <div class="flip-front"><img src="https://i.ibb.co/Lzhj4fyG/pexels-doma-18248912.jpg"></div>
-                <div class="flip-back"><h3>Modern</h3><p>-Active-</p></div>
-            </div>
-        </div>
-        <div class="gallery-col">
-            <div class="flip-card-inner">
-                <div class="flip-front"><img src="https://i.ibb.co/5gWj605y/pexels-elias-tigiser-411757-5652089.jpg"></div>
-                <div class="flip-back"><h3>Automatic</h3><p>-Analysis-</p></div>
-            </div>
-        </div>
-        <div class="gallery-col">
-            <div class="flip-card-inner">
-                <div class="flip-front"><img src="https://i.ibb.co/k2yVDmbh/pexels-mikhail-nilov-6965514.jpg"></div>
-                <div class="flip-back"><h3>Irrigation</h3><p>-Metrics-</p></div>
-            </div>
-        </div>
-        <div class="gallery-col">
-            <div class="flip-card-inner">
-                <div class="flip-front"><img src="https://i.ibb.co/MD432Gtx/pexels-alexander-hohn-2153656687-33217919.jpg"></div>
-                <div class="flip-back"><h3>System</h3><p>-Connected-</p></div>
-            </div>
+    <div class="central-hub" id="hardware-hub">
+        <h3>Hardware Management</h3>
+        <p style="font-size: 0.7em; color: #666; margin-bottom: 25px;">REGISTER NEW ESP32 NODE</p>
+        <input type="text" id="mac-address" placeholder="MAC_ADDRESS (XX:XX:XX)">
+        <button class="btn-main" onclick="registerDevice()">Link Hardware</button>
+        
+        <div style="margin-top: 30px; text-align: left;">
+            <p style="font-size: 0.8em; border-bottom: 1px solid #333; padding-bottom: 5px;">ACTIVE_DEVICES</p>
+            <div id="device-list"></div>
         </div>
     </div>
 
-    <div class="top-nav">
+    <div class="gallery-container" id="gallery">
+        <div class="gallery-col"><div class="flip-card-inner"><div class="flip-front"><img src="https://i.ibb.co/g1WSXWH/pexels-zimak-18393763.jpg"></div><div class="flip-back"><h3>FUTURE</h3><p>Root Access</p></div></div></div>
+        <div class="gallery-col"><div class="flip-card-inner"><div class="flip-front"><img src="https://i.ibb.co/wNQRqcLf/pexels-cjanimus-20261506.jpg"></div><div class="flip-back"><h3>SMART</h3><p>Irrigation</p></div></div></div>
+        <div class="gallery-col"><div class="flip-card-inner"><div class="flip-front"><img src="https://i.ibb.co/Lzhj4fyG/pexels-doma-18248912.jpg"></div><div class="flip-back"><h3>MODERN</h3><p>Botany</p></div></div></div>
+        <div class="gallery-col"><div class="flip-card-inner"><div class="flip-front"><img src="https://i.ibb.co/5gWj605y/pexels-elias-tigiser-411757-5652089.jpg"></div><div class="flip-back"><h3>ANALYSIS</h3><p>Live Metrics</p></div></div></div>
+        <div class="gallery-col"><div class="flip-card-inner"><div class="flip-front"><img src="https://i.ibb.co/k2yVDmbh/pexels-mikhail-nilov-6965514.jpg"></div><div class="flip-back"><h3>SYSTEM</h3><p>Connected</p></div></div></div>
+        <div class="gallery-col"><div class="flip-card-inner"><div class="flip-front"><img src="https://i.ibb.co/MD432Gtx/pexels-alexander-hohn-2153656687-33217919.jpg"></div><div class="flip-back"><h3>PLANT</h3><p>Health</p></div></div></div>
+    </div>
+
+    <div class="top-nav" id="signup-nav">
         <button class="btn-signup" onclick="toggleAuthMode()">Sign Up</button>
     </div>
 
     <script>
-        // --- JS LOGIC ---
         const SB_URL = "https://ccvtugkkhweprgtupwqb.supabase.co";
         const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNjdnR1Z2traHdlcHJndHVwd3FiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzOTcyMjAsImV4cCI6MjA4NTk3MzIyMH0.zZ_5Dx8txWOFfrYj0QIKu3v5Pp4Q7EMYdHGzxUalcQ4";
         const _supabase = supabase.createClient(SB_URL, SB_KEY);
@@ -211,7 +155,7 @@
         window.toggleAuthMode = function() {
             isSignUpMode = !isSignUpMode;
             document.querySelector('h2').innerText = isSignUpMode ? "CREATE_USER" : "SYSTEM_LOGIN";
-            document.querySelector('.btn-signup').innerText = isSignUpMode ? "Back to Login" : "Create Account";
+            document.querySelector('.btn-signup').innerText = isSignUpMode ? "Back to Login" : "Sign Up";
         };
 
         window.handleAuth = async function() {
@@ -220,7 +164,7 @@
             if (isSignUpMode) {
                 const { data, error } = await _supabase.auth.signUp({ email, password });
                 if (error) alert("ERR: " + error.message);
-                else alert("User Created. Please Log In.");
+                else alert("Success! You can now log in.");
             } else {
                 const { data, error } = await _supabase.auth.signInWithPassword({ email, password });
                 if (error) alert("ACCESS_DENIED: " + error.message);
@@ -229,24 +173,46 @@
         };
 
         function showUI(user) {
+            // Hide Login Elements
             document.getElementById('auth-box').classList.add('hidden');
-            document.getElementById('dashboard').classList.remove('hidden');
-            document.getElementById('user-display').innerText = user.email.split('@')[0];
+            document.getElementById('signup-nav').classList.add('hidden');
+            
+            // Transform Sidebar
+            const sidebar = document.getElementById('main-sidebar');
+            sidebar.classList.add('active-dash');
+            document.getElementById('dash-side-content').classList.remove('hidden');
+            
+            // Set User Details
+            document.getElementById('user-display-name').innerText = user.email.split('@')[0].toUpperCase();
+            document.getElementById('user-display-email').innerText = user.email;
+
+            // Blur Background & Show Hub
+            document.getElementById('gallery').classList.add('blurred');
+            document.getElementById('hardware-hub').classList.add('active');
+            
             loadDevices();
         }
 
         window.registerDevice = async function() {
             const mac = document.getElementById('mac-address').value;
+            if(!mac) return;
             const { data: { user } } = await _supabase.auth.getUser();
             const { error } = await _supabase.from('devices').insert([{ device_id: mac, owner_id: user.id, active_seed_id: 1 }]);
             if (error) alert("REG_ERR: " + error.message);
-            else { alert("HARDWARE_LINKED"); loadDevices(); }
+            else { 
+                document.getElementById('mac-address').value = "";
+                loadDevices(); 
+            }
         };
 
         async function loadDevices() {
             const { data, error } = await _supabase.from('devices').select('*');
             if (!error && data) {
-                document.getElementById('device-list').innerHTML = data.map(d => `[ONLINE] ${d.device_id} <span style="color:var(--primary-green)">${d.current_moisture || 0}%</span>`).join('<br>');
+                document.getElementById('device-list').innerHTML = data.map(d => `
+                    <div class="device-list-item">
+                        ID: ${d.device_id} | <span style="color:var(--primary-green)">${d.current_moisture || 0}% MOISTURE</span>
+                    </div>
+                `).join('');
             }
         }
     </script>
