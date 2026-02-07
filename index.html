@@ -100,50 +100,51 @@
         .top-nav { position: absolute; top: 30px; right: 40px; z-index: 200; }
 
         /* --- MOBILE RESPONSIVENESS --- */
+/* --- MOBILE FULL-SCREEN OVERLAY --- */
+/* --- MOBILE FULL-SCREEN OVERLAY --- */
 @media (max-width: 768px) {
-    /* 1. Make sidebar full screen when hovered/active */
+    /* 1. Force sidebar to occupy full screen permanently */
     .sidebar {
-        width: 12vw; /* Slightly wider 'handle' for thumbs */
-    }
-
-    .sidebar:hover, .sidebar.active-dash {
         width: 100vw !important;
-        backdrop-filter: blur(30px); /* Heavier blur for mobile focus */
+        background: rgba(5, 5, 5, 0.6); /* Highly transparent black */
+        backdrop-filter: blur(10px);    /* Frosted glass effect */
+        border-right: none;
+        position: fixed;
     }
 
-    /* 2. Adjust content layout for small screens */
+    /* 2. Hide the vertical label since we aren't "opening" it anymore */
+    .vertical-label {
+        display: none !important;
+    }
+
+    /* 3. Force the form to be visible and centered immediately */
     .auth-container, .dash-info-container {
-        width: 90%;
-        max-width: none;
+        opacity: 1 !important;
+        transform: translateX(0) !important;
+        pointer-events: auto !important;
+        position: relative; /* Removes absolute centering to allow scrolling if needed */
+        margin: 0 auto;
     }
 
-    /* 3. Ensure the Sign Up button is always on top and visible */
-    .top-nav {
-        top: 15px;
-        right: 15px;
-        z-index: 300; /* Higher than sidebar */
-    }
-
-    .btn-signup {
-        padding: 8px 15px;
-        font-size: 0.8em;
-    }
-
-    /* 4. Shrink the Central Hub so it fits phone screens */
-    .central-hub {
-        width: 85vw;
-        left: 50%; /* Center it properly since sidebar is 100% */
-        padding: 25px 15px;
-    }
-
-    /* 5. Hide the vertical label sooner on touch to prevent overlap */
-    .sidebar:active .vertical-label {
-        opacity: 0;
-    }
-
-    /* 6. Adjust the gallery padding so images aren't cut off weirdly */
+    /* 4. Ensure the background gallery is visible behind the transparency */
     .gallery-container {
-        padding-left: 12vw;
+        padding-left: 0 !important; /* Remove the offset */
+        filter: brightness(0.5);   /* Dim the images slightly for contrast */
+    }
+
+    /* 5. Adjust the Central Hub for the dashboard view */
+    .central-hub {
+        width: 90vw;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(0, 0, 0, 0.8); /* Slightly darker for input readability */
+    }
+
+    /* 6. Fix Top Nav positioning */
+    .top-nav {
+        top: 20px;
+        right: 20px;
+        z-index: 1001; /* Stay above everything */
     }
 }
     </style>
