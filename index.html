@@ -38,7 +38,7 @@
         .flip-back { background-color: rgba(0, 15, 0, 0.95); color: var(--primary-green); transform: rotateY(180deg); padding: 20px; flex-direction: column; border: 1px solid var(--primary-green); text-align: center;}
         .flip-front img { width: 100%; height: 100%; object-fit: cover; opacity: 0.5; }
 
-        /* --- 2. SIDEBAR (DESKTOP DEFAULT) --- */
+        /* --- 2. SIDEBAR (DESKTOP) --- */
         .sidebar {
             position: fixed; left: 0; top: 0; height: 100vh;
             width: 8vw; background: var(--glass-bg); backdrop-filter: blur(20px);
@@ -47,22 +47,33 @@
             z-index: 1000; transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
             overflow: hidden;
         }
-        .sidebar:hover { width: 35vw; }
+        
+        /* Expansion logic: Hover OR Locked Class */
+        .sidebar:hover, .sidebar.locked { width: 35vw; }
 
         .vertical-label { 
             writing-mode: vertical-rl; text-orientation: mixed; color: var(--primary-green); 
             font-size: 24px; letter-spacing: 5px; font-weight: bold; transition: 0.3s;
         }
-        .sidebar:hover .vertical-label { opacity: 0; }
+        .sidebar:hover .vertical-label, .sidebar.locked .vertical-label { opacity: 0; }
 
         .auth-container {
             opacity: 0; transform: translateX(-20px); transition: 0.4s; pointer-events: none;
             width: 80%; max-width: 300px; position: absolute; display: flex; flex-direction: column;
         }
-        .sidebar:hover .auth-container { opacity: 1; transform: translateX(0); pointer-events: auto; }
+        .sidebar:hover .auth-container, .sidebar.locked .auth-container { opacity: 1; transform: translateX(0); pointer-events: auto; }
 
         /* --- 3. DASHBOARD ELEMENTS --- */
-        .dash-info-container { display: none; } /* Hidden until Login */
+        .dash-info-container { 
+            display: none; 
+            position: absolute; 
+            top: 40px; 
+            left: 40px; 
+            text-align: left;
+        }
+
+        .user-info-stack h3 { font-size: 1.2rem; margin: 0; color: #fff; }
+        .user-info-stack p { font-size: 0.8rem; margin: 5px 0 15px 0; color: var(--primary-green); opacity: 0.8; }
 
         .central-hub {
             position: fixed; top: 50%; left: 55%; transform: translate(-50%, -50%) scale(0.9);
@@ -75,9 +86,20 @@
         /* --- 4. UI COMPONENTS --- */
         h2, h3 { color: var(--primary-green); letter-spacing: 3px; text-transform: uppercase; }
         input { background: #000; border: 1px solid #333; padding: 15px; margin-bottom: 15px; color: var(--primary-green); outline: none; width: 100%; box-sizing: border-box; }
+        input:focus { border-color: var(--primary-green); }
+
         .btn-main { background: transparent; border: 1px solid var(--primary-green); color: var(--primary-green); padding: 15px; font-weight: bold; cursor: pointer; text-transform: uppercase; width: 100%; transition: 0.3s; }
         .btn-main:hover { background: var(--primary-green); color: #000; }
         
+        .btn-disconnect { 
+            width: auto !important; 
+            padding: 8px 20px !important; 
+            border-color: #e74c3c !important; 
+            color: #e74c3c !important; 
+            margin-top: 10px;
+        }
+        .btn-disconnect:hover { background: #e74c3c !important; color: #fff !important; }
+
         .top-nav { position: absolute; top: 30px; right: 40px; z-index: 2000; }
         .btn-signup { background: #000; border: 1px solid var(--primary-green); color: var(--primary-green); padding: 10px 25px; cursor: pointer; border-radius: 4px; }
         
@@ -85,25 +107,20 @@
 
         .hidden { display: none !important; }
 
-        /* --- 5. MOBILE OVERRIDES (Phones Only) --- */
+        /* --- 5. MOBILE OVERRIDES --- */
         @media (max-width: 768px) {
             .sidebar { width: 100vw; background: rgba(0,0,0,0.85); border-right: none; }
-            .sidebar:hover { width: 100vw; }
+            .sidebar:hover, .sidebar.locked { width: 100vw; }
             .vertical-label { display: none; }
             .auth-container { opacity: 1; transform: none; pointer-events: auto; position: relative; }
             .gallery-container { padding-left: 0; }
             .central-hub { width: 90vw; left: 50% !important; top: 55% !important; }
 
-            /* Teleported Header Styling */
             .active-mobile-bar {
-                display: flex !important; position: fixed; top: 0; left: 0; width: 100vw; height: 85px;
+                display: block !important; position: fixed; top: 0; left: 0; width: 100vw; height: auto;
                 background: #000; border-bottom: 1px solid var(--primary-green);
-                z-index: 3000; padding: 0 20px; align-items: center; justify-content: space-between; box-sizing: border-box;
+                z-index: 3000; padding: 20px; box-sizing: border-box;
             }
-            .user-info-stack { display: flex; flex-direction: column; }
-            .user-info-stack h3 { font-size: 1rem; margin: 0; color: #fff; }
-            .user-info-stack p { font-size: 0.7rem; margin: 0; color: var(--primary-green); opacity: 0.8; }
-            .btn-disconnect-mob { width: auto !important; padding: 8px 12px !important; color: #e74c3c !important; border-color: #e74c3c !important; font-size: 0.7rem !important; }
         }
     </style>
 </head>
@@ -118,8 +135,8 @@
         
         <div class="auth-container" id="auth-box">
             <h2 id="auth-title">LOGIN</h2>
-            <input type="email" id="email" placeholder="USER_ID">
-            <input type="password" id="password" placeholder="ACCESS_KEY">
+            <input type="email" id="email" placeholder="USER_ID" onfocus="lockSidebar(true)" onblur="lockSidebar(false)">
+            <input type="password" id="password" placeholder="ACCESS_KEY" onfocus="lockSidebar(true)" onblur="lockSidebar(false)">
             <button class="btn-main" onclick="handleAuth()">Authorize</button>
         </div>
 
@@ -127,8 +144,8 @@
             <div class="user-info-stack">
                 <h3 id="user-display-name">USER</h3>
                 <p id="user-display-email"></p>
+                <button class="btn-main btn-disconnect" onclick="location.reload()">Disconnect</button>
             </div>
-            <button class="btn-main btn-disconnect-mob" onclick="location.reload()">Disconnect</button>
         </div>
     </div>
 
@@ -154,6 +171,21 @@
         const _supabase = supabase.createClient(SB_URL, SB_KEY);
         let isSignUpMode = false;
 
+        // --- SIDEBAR LOCKING LOGIC ---
+        function lockSidebar(shouldLock) {
+            const sidebar = document.getElementById('main-sidebar');
+            if (shouldLock) {
+                sidebar.classList.add('locked');
+            } else {
+                // Delay unlock slightly to allow for tab switching
+                setTimeout(() => {
+                    if (!document.activeElement.id.includes('email') && !document.activeElement.id.includes('password')) {
+                        sidebar.classList.remove('locked');
+                    }
+                }, 100);
+            }
+        }
+
         function toggleAuthMode() {
             isSignUpMode = !isSignUpMode;
             document.getElementById('auth-title').innerText = isSignUpMode ? "CREATE_USER" : "LOGIN";
@@ -173,11 +205,8 @@
         }
 
         function showUI(user) {
-            // UI Cleanup
             document.getElementById('auth-box').classList.add('hidden');
             document.getElementById('signup-nav').classList.add('hidden');
-            
-            // Data Population
             document.getElementById('user-display-name').innerText = user.email.split('@')[0].toUpperCase();
             document.getElementById('user-display-email').innerText = user.email;
 
@@ -185,16 +214,13 @@
             const dashSide = document.getElementById('dash-side-content');
 
             if (window.innerWidth <= 768) {
-                // Mobile: Sidebar GONE, Header TELEPORTED
                 sidebar.style.display = 'none';
                 document.body.appendChild(dashSide);
                 dashSide.classList.add('active-mobile-bar');
             } else {
-                // Laptop: Sidebar STAYS but shows info
                 sidebar.classList.add('active-dash');
+                sidebar.classList.add('locked'); // Keep sidebar open on laptop after login
                 dashSide.style.display = 'block';
-                dashSide.style.opacity = '1';
-                dashSide.style.pointerEvents = 'auto';
             }
 
             document.getElementById('gallery').classList.add('blurred');
