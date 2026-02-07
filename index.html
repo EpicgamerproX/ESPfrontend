@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smart Garden | Control Center</title>
+    <title>Smart Garden</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
@@ -218,7 +218,38 @@
         window.addEventListener('resize', resize);
         resize(); initPoints(); animate();
 
-        // (Add your registerDevice, loadDevices, and signOut functions here from previous scripts)
+        //async function registerDevice() {
+        const mac = document.getElementById('mac-address').value;
+        const { data: { user } } = await supabase.auth.getUser();
+
+        // SQL equivalent: INSERT INTO devices (device_id, owner_id) VALUES (mac, user.id)
+        const { error } = await supabase
+            .from('devices')
+            .insert([{ device_id: mac, owner_id: user.id, active_seed_id: 1 }]);
+
+        if (error) msg.innerText = "Error: " + error.message;
+        else {
+            msg.innerText = "Device Linked Successfully!";
+            loadDevices();
+        }
+    }
+
+    // 6. LOAD DEVICES (Visualizing your SQL knowledge)
+    async function loadDevices() {
+        // SQL: SELECT * FROM devices WHERE owner_id = current_user
+        const { data, error } = await supabase.from('devices').select('*');
+        
+        const list = document.getElementById('device-list');
+        if (data.length === 0) list.innerHTML = "No devices linked.";
+        else {
+            list.innerHTML = data.map(d => `<div>🆔 ${d.device_id} <br> 💧 Moisture: ${d.current_moisture}%</div>`).join('');
+        }
+    }
+
+    async function signOut() {
+        await supabase.auth.signOut();
+        location.reload();
+    }
     </script>
 </body>
 </html>
