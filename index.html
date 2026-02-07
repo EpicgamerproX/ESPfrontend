@@ -102,49 +102,86 @@
         /* --- MOBILE RESPONSIVENESS --- */
 /* --- MOBILE FULL-SCREEN OVERLAY --- */
 /* --- MOBILE FULL-SCREEN OVERLAY --- */
+/* --- MOBILE REFACTORED LAYOUT --- */
 @media (max-width: 768px) {
-    /* 1. Force sidebar to occupy full screen permanently */
+    /* 1. Sidebar becomes a transparent Full Screen overlay */
     .sidebar {
         width: 100vw !important;
-        background: rgba(5, 5, 5, 0.6); /* Highly transparent black */
-        backdrop-filter: blur(10px);    /* Frosted glass effect */
+        background: rgba(0, 0, 0, 0.7); /* Deep transparent black */
+        backdrop-filter: blur(12px);
         border-right: none;
-        position: fixed;
+        display: flex;
+        flex-direction: column;
+        justify-content: center; /* Centers Login Form */
     }
 
-    /* 2. Hide the vertical label since we aren't "opening" it anymore */
-    .vertical-label {
-        display: none !important;
+    .vertical-label { display: none !important; }
+
+    /* 2. Dashboard Top Header (Mobile Only) */
+    .sidebar.active-dash {
+        justify-content: flex-start; /* Move contents to top */
+        padding-top: 80px;
     }
 
-    /* 3. Force the form to be visible and centered immediately */
-    .auth-container, .dash-info-container {
-        opacity: 1 !important;
-        transform: translateX(0) !important;
-        pointer-events: auto !important;
-        position: relative; /* Removes absolute centering to allow scrolling if needed */
-        margin: 0 auto;
+    .dash-info-container {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100% !important;
+        max-width: none !important;
+        height: 70px;
+        flex-direction: row !important; /* Side-by-side layout */
+        justify-content: space-between;
+        align-items: center;
+        padding: 0 20px;
+        border-bottom: 1px solid var(--primary-green);
+        background: rgba(0, 0, 0, 0.9);
+        box-sizing: border-box;
     }
 
-    /* 4. Ensure the background gallery is visible behind the transparency */
-    .gallery-container {
-        padding-left: 0 !important; /* Remove the offset */
-        filter: brightness(0.5);   /* Dim the images slightly for contrast */
+    /* Adjust User Info for the Top Bar */
+    .dash-info-container div:first-child {
+        text-align: left !important;
+        margin-bottom: 0 !important;
     }
 
-    /* 5. Adjust the Central Hub for the dashboard view */
+    .dash-info-container h3 { 
+        font-size: 1rem; 
+        margin: 0; 
+        text-align: left;
+    }
+
+    .dash-info-container p { display: none; } /* Hide email on mobile to save space */
+
+    /* 3. Disconnect Button (Top Right) */
+    .dash-info-container .btn-main {
+        width: auto !important;
+        padding: 8px 15px;
+        font-size: 0.7em;
+        margin-bottom: 0;
+    }
+
+    /* 4. Center the Hardware Hub for Mobile */
     .central-hub {
-        width: 90vw;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        background: rgba(0, 0, 0, 0.8); /* Slightly darker for input readability */
+        width: 90vw !important;
+        left: 50% !important;
+        top: 55% !important; /* Centered slightly lower to avoid header */
+        transform: translate(-50%, -50%) !important;
+        background: rgba(5, 5, 5, 0.9);
+        padding: 25px;
+        box-sizing: border-box;
     }
 
-    /* 6. Fix Top Nav positioning */
+    /* 5. Cleanup Gallery */
+    .gallery-container {
+        padding-left: 0 !important;
+        filter: brightness(0.4);
+    }
+
+    /* 6. Move Signup button for mobile login view */
     .top-nav {
         top: 20px;
         right: 20px;
-        z-index: 1001; /* Stay above everything */
     }
 }
     </style>
